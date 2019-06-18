@@ -12,7 +12,8 @@ def main():
 		message = 'Journalists belong in the gutter because that us where the ruling classes throw their guilty secrets. Gerald Priestland. The Founding Fathers gave the free press the protection it must have to bare the secrets of government and inform the people. Hugo Black.'
 		pubKeyFilename = 'al_sweigart_pubkey.txt'
 		print('Encrypting and writing to {}...'.format(filename))
-		encryptedText = encryptAndWriteToFile(filename, pubKeyFilename, message)
+		encryptedText = encrypt(pubKeyFilename, message)
+		writeToFile(filename, encryptedText)
 
 		print('Encrypted text:')
 		print(encryptedText)
@@ -20,7 +21,8 @@ def main():
 	elif mode=='decrypt':
 		privKeyFilename = 'al_sweigart_privkey.txt'
 		print('Reading from {} and decrypting...'.format(filename))
-		decryptedText = readFromFileAndDecrypt(filename, privKeyFilename)
+		message = readFromFile(filename)
+		decryptedText = decrypt(message, privKeyFilename)
 
 		print('Decrypted text:')
 		print(decryptedText)
@@ -71,7 +73,7 @@ def readKeyFile(keyFilename):
 	keySize, n, EorD = content.split(',')
 	return (int(keySize), int(n), int(EorD))
 
-def encryptAndWriteToFile(messageFilename, keyFilename, message, blockSize=None):
+def encrypt(keyFilename, message, blockSize=None):
 	keySize, n, e = readKeyFile(keyFilename)
 	if blockSize==None:
 		blockSize = int(math.log(2**keySize, len(SYMBOLS)))
@@ -84,17 +86,20 @@ def encryptAndWriteToFile(messageFilename, keyFilename, message, blockSize=None)
 	encryptedContent = ','.join(encryptedBlocks)
 
 	encryptedContent = '{}_{}_{}'.format(len(message), blockSize, encryptedContent)
+	return encryptedContent
+
+def writeToFile(messageFilename, encryptedContent):
 	fo = open(messageFilename, 'w')
 	fo.write(encryptedContent)
 	fo.close
-	return encryptedContent
 
-def readFromFileAndDecrypt(messageFilename, keyFilename):
-	keySize, n, d = readKeyFile(keyFilename)
-
+def readFromFile(messageFilename):
 	fo = open(messageFilename)
-	content = fo.read()
-	messageLength, blockSize, encryptedMessage = content.split('_')
+	return fo.read()
+
+def decrypt(message, keyFilename):
+	keySize, n, d = readKeyFile(keyFilename)
+	messageLength, blockSize, encryptedMessage = message.split('_')
 	messageLength = int(messageLength)
 	blockSize = int(blockSize)
 
